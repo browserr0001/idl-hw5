@@ -57,13 +57,13 @@ class LMDataset(Dataset):
 
         # TODO: Get tokenizer ids for special tokens (eos, sos, pad)
         # Hint: See the class members of the H4Tokenizer class
-        self.eos_token = self.tokenizer.eos_token_id
-        self.sos_token = self.tokenizer.sos_token_id
-        self.pad_token = self.tokenizer.pad_token_id
+        self.eos_token = self.tokenizer.eos_id
+        self.sos_token = self.tokenizer.sos_id
+        self.pad_token = self.tokenizer.pad_id
 
         # Set up data paths 
         # TODO: Join root and partition to get the text directory
-        self.text_dir = os.path.join(config['data_root'], partition)
+        self.text_dir = os.path.join(config['root'], partition)
 
         # TODO: Get all text files in the text directory in sorted order  
         self.text_files = sorted([os.path.join(self.text_dir, f) for f in os.listdir(self.text_dir) if f.endswith('.npy')])
@@ -94,7 +94,7 @@ class LMDataset(Dataset):
             self.total_chars += len(transcript)
             
             # TODO: Use tokenizer to encode the transcript
-            tokenized = NotImplementedError
+            tokenized = tokenized = self.tokenizer.encode(transcript)
             
             # Track token count (excluding special tokens)
             # DO NOT MODIFY
@@ -130,7 +130,8 @@ class LMDataset(Dataset):
     def __len__(self) -> int:
         """Returns the number of samples in the dataset."""
         # TODO: Implement __len__
-        raise self.length
+        return self.length
+
 
     def __getitem__(self, idx: int) -> Tuple[torch.LongTensor, torch.LongTensor]:
         """
@@ -176,7 +177,7 @@ class LMDataset(Dataset):
         padded_golden  = pad_sequence(golden_transcripts, batch_first=True, padding_value=self.pad_token) # (B, T)
 
         # TODO: Return the padded shifted, padded golden, and lengths
-        raise padded_shifted, padded_golden, lengths
+        return padded_shifted, padded_golden, lengths
 
     def sample_prompts(self, num_samples: int, prompt_length: int, seed: int = None) -> Tuple[torch.LongTensor, List[torch.LongTensor]]:
         """

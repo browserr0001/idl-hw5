@@ -15,18 +15,27 @@ Specification:
 - Mask should be on same device as input tensor
 '''
 def PadMask(padded_input, input_lengths):
-    """ 
-    Create a mask to identify non-padding positions. 
-    Args:
-        padded_input: The input tensor with padding, shape (N, T, ...) or (N, T).
-        input_lengths: The actual lengths of each sequence before padding, shape (N,).
-    Returns:
-        A boolean mask tensor with shape (N, T), where: 
-            - padding positions are marked with True 
-            - non-padding positions are marked with False.
     """
-    # TODO: Implement PadMask
-    raise NotImplementedError # Remove once implemented
+    Create a boolean mask for padded positions in a batch of sequences.
+
+    Args:
+        padded_input (Tensor): Padded sequences of shape (N, T, ...) or (N, T)
+        input_lengths (Tensor): Actual lengths of the sequences (N,)
+
+    Returns:
+        Tensor: A boolean mask of shape (N, T), with True in padded positions.
+    """
+    N, T = padded_input.shape[:2]  # Get batch size and sequence length
+    device = padded_input.device
+
+    # Create a range tensor [0, 1, 2, ..., T-1] shaped (1, T)
+    range_tensor = torch.arange(T, device=device).unsqueeze(0)
+
+    # Compare each position to the corresponding input length
+    mask = range_tensor >= input_lengths.unsqueeze(1)
+
+    return mask  # shape: (N, T), True for padding
+
 
 ''' 
 TODO: Implement this function.
@@ -41,16 +50,20 @@ Specification:
 - Mask should be upper triangular (excluding diagonal)
 '''
 def CausalMask(padded_input):
-    """ 
-    Create a mask to identify non-causal positions. 
-    Args:
-        padded_input: The input tensor with padding, shape (N, T, ...) or (N, T).
-    
-    Returns:
-        A boolean mask tensor with shape (T, T), where: 
-            - non-causal positions (don't attend to) are marked with True 
-            - causal positions (can attend to) are marked with False.
     """
-    # TODO: Implement CausalMask
-    raise NotImplementedError # Remove once implemented
+    Create a causal attention mask that prevents attending to future positions.
+
+    Args:
+        padded_input (Tensor): Input tensor of shape (N, T, ...) or (N, T)
+
+    Returns:
+        Tensor: A boolean mask of shape (T, T), with True above the diagonal (future positions).
+    """
+    T = padded_input.shape[1]
+    device = padded_input.device
+
+    # Generate an upper triangular matrix with True above the diagonal
+    mask = torch.triu(torch.ones((T, T), device=device), diagonal=1).bool()
+
+    return mask  # shape: (T, T), True = block
 
