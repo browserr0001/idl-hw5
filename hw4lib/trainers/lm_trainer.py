@@ -82,7 +82,7 @@ class LMTrainer(BaseTrainer):
           targets_golden = targets_golden.to(self.device)
           lengths = lengths.to(self.device)
 
-          with torch.autocast(device_type=self.device.type, dtype=torch.float16):
+          with torch.autocast(device_type=self.device, dtype=torch.float16):
               # Get model predictions and attention weights
               raw_preds, attn_weights = self.model(targets_shifted, lengths)
               
@@ -115,7 +115,7 @@ class LMTrainer(BaseTrainer):
             targets_shifted, targets_golden, lengths = batch
         
 
-            with torch.autocast(device_type=self.device.type, dtype=torch.float16):
+            with torch.autocast(device_type=self.device, dtype=torch.float16):
 
                 # TODO: Get raw logits and attention weights from model
                 raw_preds, attn_weights = self.model(targets_shifted, target_lengths=lengths)
