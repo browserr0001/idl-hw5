@@ -55,7 +55,9 @@ class SelfAttentionLayer(nn.Module):
             #raise NotImplementedError # Remove once implemented
 
 
-        def forward(self, x: torch.Tensor, key_padding_mask: Optional[torch.Tensor] = None, attn_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+        def forward(self,query: torch.Tensor,key: Optional[torch.Tensor] = None,value: Optional[torch.Tensor] = None,key_padding_mask: Optional[torch.Tensor] = None,attn_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+            residual = query 
+            norm_query = self.norm(query)
             '''
             Forward pass for the SelfAttentionLayer.
             Args:
@@ -72,8 +74,11 @@ class SelfAttentionLayer(nn.Module):
             # TODO: Self-attention
             # Be sure to use the correct arguments for the multi-head attention layer
             # Set need_weights to True and average_attn_weights to True so we can get the attention weights 
+            if key is None or value is None:
+                key = value = norm_query
+                attn_output, attn_weights = self.mha(norm_query, key, value,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
             normalized_x = self.norm(x)
-            attn_output, mha_attn_weights = self.mha(query=normalized_x,key=normalized_x,value=normalized_x,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
+            #attn_output, mha_attn_weights = self.mha(query=normalized_x,key=normalized_x,value=normalized_x,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
 
             
             # NOTE: For some regularization you can apply dropout and then add residual connection
@@ -81,7 +86,7 @@ class SelfAttentionLayer(nn.Module):
 
             # TODO: Return the output tensor and attention weights
             x = residual + self.dropout(attn_output)
-            return x, mha_attn_weights
+            return x, attn_weights
             #raise NotImplementedError # Remove once implemented
         
 ## -------------------------------------------------------------------------------------------------  

@@ -72,7 +72,7 @@ class ASRDataset(Dataset):
                                           Should only be None for training set.
                                           Should be provided for dev and test sets.
         """
-        # TODO: Implement __init__
+        # TODO: Implement _init_
         #raise NotImplementedError # Remove once implemented
     
         # Store basic configuration
@@ -239,7 +239,7 @@ class ASRDataset(Dataset):
         Return the number of samples in the dataset.
         DO NOT MODIFY
         """
-        # TODO: Implement __len__
+        # TODO: Implement _len_
         return self.length
 
     def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -283,7 +283,7 @@ class ASRDataset(Dataset):
         Collate and pad a batch of samples to create a batch of fixed-length padded features and transcripts.
 
         Args:
-            batch (list): List of samples from __getitem__
+            batch (list): List of samples from _getitem_
 
         Returns:
             tuple: (padded_features, padded_shifted, padded_golden, feat_lengths, transcript_lengths) where:
@@ -345,4 +345,3 @@ class ASRDataset(Dataset):
         # TODO: Return the padded features, padded shifted, padded golden, feature lengths, and transcript lengths
         return padded_feats, padded_shifted, padded_golden, feat_lengths, transcript_lengths
  # Remove once implemented
-

@@ -45,7 +45,9 @@ class SelfAttentionEncoderLayer(nn.Module):
         super().__init__()
         # TODO: Implement __init__
 
-        # TODO: Initialize the sublayers      
+        # TODO: Initialize the sublayers
+        self.ln1 = nn.LayerNorm(d_model)
+        self.ln2 = nn.LayerNorm(d_model)      
         self.self_attn = SelfAttentionLayer(d_model, num_heads, dropout) # Self-attention layer
         self.ffn = FeedForwardLayer(d_model, d_ff, dropout) # Feed-forward network
         #raise NotImplementedError # Remove once implemented
@@ -64,10 +66,14 @@ class SelfAttentionEncoderLayer(nn.Module):
         # TODO: Implement forward: Follow the figure in the writeup
 
         # What will be different from decoder self-attention layer?
-        x, mha_attn_weights = self.self_attn(x, key_padding_mask)
-        x = self.ffn(x)
-        
+        residual = x
+        x_ln = self.ln1(x)
+        x_attn, attn_weights = self.self_attn(x_ln, x_ln, x_ln, key_padding_mask)
+        x = residual + x_attn
         # TODO: Return the output tensor and attention weights
-        #raise NotImplementedError # Remove once implemented
-        return x, mha_attn_weights
+        residual = x
+        x_ln = self.ln2(x)
+        x_ffn = self.ffn(x_ln)
+        x = residual + x_ffn
+        return x, attn_weights # Remove once implemented
 
