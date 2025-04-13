@@ -27,7 +27,7 @@ def PadMask(padded_input, input_lengths):
     """
     N, T = padded_input.shape[:2]  # Get batch size and sequence length
     device = padded_input.device
-
+    input_lengths = input_lengths.to(device)
     # Create a range tensor [0, 1, 2, ..., T-1] shaped (1, T)
     range_tensor = torch.arange(T, device=device).unsqueeze(0)
 
