@@ -77,3 +77,4 @@ class SelfAttentionEncoderLayer(nn.Module):
         x = self.ln2(x)
         x = self.ffn(x)
         return x, attn_weights # Remove once implemented
+
