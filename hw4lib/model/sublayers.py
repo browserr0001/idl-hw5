@@ -76,13 +76,13 @@ class SelfAttentionLayer(nn.Module):
             # Set need_weights to True and average_attn_weights to True so we can get the attention weights 
             if key is None or value is None:
                 key = value = norm_query
-                attn_output, attn_weights = self.mha(norm_query, key, value,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
-            normalized_x = self.norm(x)
+            attn_output, attn_weights = self.mha(norm_query, key, value,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
+            normalized_x = self.norm(query)
             #attn_output, mha_attn_weights = self.mha(query=normalized_x,key=normalized_x,value=normalized_x,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
 
             
             # NOTE: For some regularization you can apply dropout and then add residual connection
-            residual = x
+            residual = query
 
             # TODO: Return the output tensor and attention weights
             x = residual + self.dropout(attn_output)

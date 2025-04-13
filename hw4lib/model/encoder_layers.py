@@ -46,10 +46,11 @@ class SelfAttentionEncoderLayer(nn.Module):
         # TODO: Implement __init__
 
         # TODO: Initialize the sublayers
-        self.ln1 = nn.LayerNorm(d_model)
-        self.ln2 = nn.LayerNorm(d_model)      
         self.self_attn = SelfAttentionLayer(d_model, num_heads, dropout) # Self-attention layer
         self.ffn = FeedForwardLayer(d_model, d_ff, dropout) # Feed-forward network
+        self.ln1 = nn.LayerNorm(d_model)
+        self.ln2 = nn.LayerNorm(d_model)  
+           
         #raise NotImplementedError # Remove once implemented
 
     def forward(self, x: torch.Tensor, key_padding_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -66,14 +67,14 @@ class SelfAttentionEncoderLayer(nn.Module):
         # TODO: Implement forward: Follow the figure in the writeup
 
         # What will be different from decoder self-attention layer?
-        residual = x
-        x_ln = self.ln1(x)
-        x_attn, attn_weights = self.self_attn(x_ln, x_ln, x_ln, key_padding_mask)
-        x = residual + x_attn
+        orig_x = x
+
+        x = self.ln1(x)
+        attn_output, attn_weights = self.self_attn(x, x, x, key_padding_mask)
+        x = orig_x + attn_output
         # TODO: Return the output tensor and attention weights
         residual = x
-        x_ln = self.ln2(x)
-        x_ffn = self.ffn(x_ln)
-        x = residual + x_ffn
+        x = self.ln2(x)
+        x = self.ffn(x)
         return x, attn_weights # Remove once implemented
 
