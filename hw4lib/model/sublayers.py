@@ -18,77 +18,92 @@ from torch.nn.modules import normalization
     '''
 
 class SelfAttentionLayer(nn.Module):
-        '''
-        Pre-LN Decoder Sub-Layer 1.
-        This layer is responsible for the causally-masked self-attention mechanism.
-        
-        Steps to implement:
-        1. Initialize the multi-head attention with proper parameters
-        2. Initialize layer normalization for d_model dimensionality
-        3. Initialize dropout with specified rate
-        4. In forward pass:
-        a. Store residual connection
-        b. Apply pre-normalization
-        c. Apply self-attention with masking
-        d. Apply residual connection with dropout
-        e. Return the output tensor and attention weights    
-        ''' 
-        def __init__(self, d_model: int, num_heads: int, dropout: float = 0.0):
-            '''
-            Initialize the SelfAttentionLayer. 
-            Args:
-                d_model   (int): The dimension of the model.
-                num_heads (int): The number of attention heads.
-                dropout (float): The dropout rate.
-            '''
-            super().__init__()
-            # TODO: Implement __init__
+          '''
+          Pre-LN Decoder Sub-Layer 1.
+          This layer is responsible for the causally-masked self-attention mechanism.
+          
+          Steps to implement:
+          1. Initialize the multi-head attention with proper parameters
+          2. Initialize layer normalization for d_model dimensionality
+          3. Initialize dropout with specified rate
+          4. In forward pass:
+          a. Store residual connection
+          b. Apply pre-normalization
+          c. Apply self-attention with masking
+          d. Apply residual connection with dropout
+          e. Return the output tensor and attention weights    
+          ''' 
+          def __init__(self, d_model: int, num_heads: int, dropout: float = 0.0):
+              '''
+              Initialize the SelfAttentionLayer. 
+              Args:
+                  d_model   (int): The dimension of the model.
+                  num_heads (int): The number of attention heads.
+                  dropout (float): The dropout rate.
+              '''
+              super().__init__()
+              # TODO: Implement __init__
+              
+              # TODO: Initialize the multi-head attention mechanism (use nn.MultiheadAttention)
+              self.mha = nn.MultiheadAttention(embed_dim=d_model, num_heads=num_heads, dropout=dropout, batch_first=True)
+              
+              # TODO: Initialize the normalization layer (use nn.LayerNorm)
+              self.norm = nn.LayerNorm(d_model)
+
+              # TODO: Initialize the dropout layer
+              self.dropout = nn.Dropout(dropout)
+              #raise NotImplementedError # Remove once implemented
+
+
+          def forward(self,query: torch.Tensor,key: Optional[torch.Tensor] = None,value: Optional[torch.Tensor] = None,key_padding_mask: Optional[torch.Tensor] = None,attn_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+              '''
+              Forward pass for the SelfAttentionLayer.
+              Args:
+                  x (torch.Tensor): The input tensor. shape: (batch_size, seq_len, d_model)   
+                  key_padding_mask (Optional[torch.Tensor]): The padding mask for the key input. shape: (batch_size, seq_len)
+                  attn_mask (Optional[torch.Tensor]): The attention mask. shape: (seq_len, seq_len)
+
+              Returns:
+                  x (torch.Tensor): The output tensor. shape: (batch_size, seq_len, d_model)
+                  mha_attn_weights (torch.Tensor): The attention weights. shape: (batch_size, seq_len, seq_len)   
+              '''
+              # TODO: Implement forward: Follow the figure in the writeup
+              
+              # TODO: Self-attention
+              # Be sure to use the correct arguments for the multi-head attention layer
+              # Set need_weights to True and average_attn_weights to True so we can get the attention weights 
+              if isinstance(key, torch.Tensor) and key.dtype == torch.bool:
+                  key_padding_mask = key
+                  key = None
+
+              if isinstance(value, torch.Tensor) and value.dtype == torch.bool:
+                  attn_mask = value
+                  value = None
+
+              def ensure_3d(x):
+                if x.dim() == 2:
+                    return x.unsqueeze(0)
+                elif x.dim() == 3:
+                    return x
+                else:
+                    raise ValueError(f"Expected 2D or 3D tensor, got shape: {x.shape}")  
+              query = ensure_3d(query)
+              key = ensure_3d(query) if key is None else ensure_3d(key)
+              value = ensure_3d(query) if value is None else ensure_3d(value)
+
+              norm_query = self.norm(query)
+              attn_output, attn_weights = self.mha(query=norm_query,key=key,value=value,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
+              #attn_output, mha_attn_weights = self.mha(query=normalized_x,key=normalized_x,value=normalized_x,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
+
+              
+              # NOTE: For some regularization you can apply dropout and then add residual connection
             
-            # TODO: Initialize the multi-head attention mechanism (use nn.MultiheadAttention)
-            self.mha = nn.MultiheadAttention(embed_dim=d_model, num_heads=num_heads, dropout=dropout, batch_first=True)
-            
-            # TODO: Initialize the normalization layer (use nn.LayerNorm)
-            self.norm = nn.LayerNorm(d_model)
 
-            # TODO: Initialize the dropout layer
-            self.dropout = nn.Dropout(dropout)
-            #raise NotImplementedError # Remove once implemented
-
-
-        def forward(self,query: torch.Tensor,key: Optional[torch.Tensor] = None,value: Optional[torch.Tensor] = None,key_padding_mask: Optional[torch.Tensor] = None,attn_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
-            residual = query 
-            norm_query = self.norm(query)
-            '''
-            Forward pass for the SelfAttentionLayer.
-            Args:
-                x (torch.Tensor): The input tensor. shape: (batch_size, seq_len, d_model)   
-                key_padding_mask (Optional[torch.Tensor]): The padding mask for the key input. shape: (batch_size, seq_len)
-                attn_mask (Optional[torch.Tensor]): The attention mask. shape: (seq_len, seq_len)
-
-            Returns:
-                x (torch.Tensor): The output tensor. shape: (batch_size, seq_len, d_model)
-                mha_attn_weights (torch.Tensor): The attention weights. shape: (batch_size, seq_len, seq_len)   
-            '''
-            # TODO: Implement forward: Follow the figure in the writeup
-            
-            # TODO: Self-attention
-            # Be sure to use the correct arguments for the multi-head attention layer
-            # Set need_weights to True and average_attn_weights to True so we can get the attention weights 
-            if key is None or value is None:
-                key = value = norm_query
-            attn_output, attn_weights = self.mha(norm_query, key, value,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
-            normalized_x = self.norm(query)
-            #attn_output, mha_attn_weights = self.mha(query=normalized_x,key=normalized_x,value=normalized_x,key_padding_mask=key_padding_mask,attn_mask=attn_mask,need_weights=True,average_attn_weights=True)
-
-            
-            # NOTE: For some regularization you can apply dropout and then add residual connection
-            residual = query
-
-            # TODO: Return the output tensor and attention weights
-            x = residual + self.dropout(attn_output)
-            return x, attn_weights
-            #raise NotImplementedError # Remove once implemented
-        
+              # TODO: Return the output tensor and attention weights
+              x = query + self.dropout(attn_output)
+              return x, attn_weights
+              #raise NotImplementedError # Remove once implemented
+          
 ## -------------------------------------------------------------------------------------------------  
 class CrossAttentionLayer(nn.Module):
         '''
