@@ -287,7 +287,7 @@ class LMTrainer(BaseTrainer):
             # Save attention plots
             train_attn_keys = list(train_attn.keys())
             val_attn_keys = list(val_attn.keys())
-            self._save_attention_plot(train_attn[train_attn_keys[0]][0], epoch, "train_self")
+            self._saveattention_plot(train_attn[train_attn_keys[0]][0], epoch, "train_self")
             self._save_attention_plot(val_attn[val_attn_keys[0]][0], epoch, "val_self")
 
             # Save generated text
@@ -336,7 +336,7 @@ class LMTrainer(BaseTrainer):
             try:
                 gen_results = self.generate(test_dataloader, generation_config=config)
                 generation_results[config_name] = gen_results
-                self.save_generated_text(gen_results, f'test_epoch{self.current_epoch}_{config_name}')
+                self._save_generated_text(gen_results, f'test_epoch{self.current_epoch}_{config_name}')
             except Exception as e:
                 print(f"Could not generate results for {config_name}: {e}")
                 continue
