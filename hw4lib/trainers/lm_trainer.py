@@ -19,14 +19,14 @@ class LMTrainer(BaseTrainer):
     Please do not modify any other code without understanding what you are doing.
     
     Implementation Tasks:
-    - TODO: Initialize the criterion in _init_
+    - TODO: Initialize the criterion in init
     - TODO: Implement key parts of the training loop in _train_epoch
     - TODO: Use your greedy generation implementation in generate
     - TODO: Implement key parts of the the validation loop in _validate_epoch
     - TODO: Implement key parts of the full training loop in train
 
     Implementation Notes:
-    1. For _init_:
+    1. For init:
         - Initialize CrossEntropyLoss with appropriate padding index and label smoothing
         
     2. For _train_epoch:
@@ -49,7 +49,7 @@ class LMTrainer(BaseTrainer):
 
     def __init__(self, model, tokenizer, config, run_name, config_file, device=None):
         super().__init__(model, tokenizer, config, run_name, config_file, device)
-        # TODO: Implement the _init_ method
+        # TODO: Implement the init method
         # TODO: Initialize the criterion
         # How would you set the ignore_index? 
         # Use value in config to set the label_smoothing argument
@@ -291,7 +291,7 @@ class LMTrainer(BaseTrainer):
             self._save_attention_plot(val_attn[val_attn_keys[0]][0], epoch, "val_self")
 
             # Save generated text
-            self.save_generated_text(gen_results, f'val_epoch{epoch}')
+            self._save_generated_text(gen_results, f'val_epoch{epoch}')
 
             # Save checkpoints
             self.save_checkpoint('checkpoint-last-epoch-model.pth')
