@@ -107,15 +107,18 @@ class ASRTrainer(BaseTrainer):
         for i, batch in enumerate(dataloader):
             # TODO: Unpack batch and move to device
             feats, targets_shifted, targets_golden, feat_lengths, transcript_lengths = batch
-            feats = feats.to(self.device, dtype=torch.float16)
+            feats = feats.to(self.device,dtype=torch.float16)
             targets_shifted = targets_shifted.to(self.device)
             targets_golden = targets_golden.to(self.device)
             feat_lengths = feat_lengths.to(self.device)
             transcript_lengths = transcript_lengths.to(self.device)
+            
+
 
             with torch.autocast(device_type=self.device, dtype=torch.float16):
                 # TODO: get raw predictions and attention weights and ctc inputs from model
                 seq_out, curr_att, ctc_inputs = self.model(feats, targets_shifted, feat_lengths, transcript_lengths)
+
                 
                 # Update running_att with the latest attention weights
                 running_att = curr_att
@@ -126,8 +129,8 @@ class ASRTrainer(BaseTrainer):
                 
                 # TODO: Calculate CTC loss if needed
                 if self.ctc_weight > 0:
-                    log_probs = ctc_inputs['log_probs'].to(self.device)
-                    input_lengths = ctc_inputs['lengths'].to(self.device)
+                    log_probs = ctc_inputs['log_probs']
+                    input_lengths = ctc_inputs['lengths']
                     ctc_loss = self.ctc_criterion(log_probs, targets_golden, input_lengths, transcript_lengths)
                     loss = ce_loss + self.ctc_weight * ctc_loss
                 else:
@@ -221,7 +224,8 @@ class ASRTrainer(BaseTrainer):
         
         # Calculate metrics on full batch
         metrics = self._calculate_asr_metrics(references, hypotheses)
-        
+        print("Sample result:", results[0])
+
         return metrics, results
     
     def train(self, train_dataloader, val_dataloader, epochs: int):
@@ -244,7 +248,6 @@ class ASRTrainer(BaseTrainer):
 
         # Set max transcript length
         self.text_max_len = max(val_dataloader.dataset.text_max_len, train_dataloader.dataset.text_max_len)
-        best_val_cer = float('inf')
 
         # Training loop
         best_val_loss = float('inf')
@@ -401,11 +404,11 @@ class ASRTrainer(BaseTrainer):
                 # TODO: Unpack batch and move to device
                 # TODO: Handle both cases where targets may or may not be None (val set v. test set) 
                 feats, _, targets_golden, feat_lengths, _ = batch
-                feats = feats.to(self.device)
-                feat_lengths = feat_lengths.to(self.device)
+                feats, feat_lengths = feats.to(self.device), feat_lengths.to(self.device)
                 
                 # TODO: Encode speech features to hidden states
                 encoder_output, pad_mask_src, _, _ = self.model.encode(feats, feat_lengths)
+                
                 # Define scoring function for this batch
                 def get_score(x):
                     asr_logits = self.model.score(x, encoder_output, pad_mask_src)
@@ -425,7 +428,6 @@ class ASRTrainer(BaseTrainer):
                 if recognition_config['beam_width'] > 1:
                     # TODO: If you have implemented beam search, generate sequences using beam search
                     seqs, scores = generator.generate_beam(prompts, beam_width=recognition_config['beam_width'])
-                    
                     #raise NotImplementedError # Remove if you implemented the beam search method
                     # Pick best beam
                     seqs = seqs[:, 0, :]
@@ -433,7 +435,6 @@ class ASRTrainer(BaseTrainer):
                 else:
                     # TODO: Generate sequences using greedy search
                     seqs, scores = generator.generate_greedy(prompts)
-                    
                     #raise NotImplementedError # Remove if you implemented the greedy search method
 
                 # Clean up
@@ -865,6 +866,3 @@ class ProgressiveTrainer(ASRTrainer):
         )
         
         return subset_loader
-        
-        
-        
